@@ -1,0 +1,103 @@
+const express=require('express');
+const app = express();
+app.use(express.json());
+const port =5000;
+const departments =[
+    {id:1 , name :'dep1'},
+    {id:2 , name :'dep2'},
+    {id:3 , name :'dep3'}
+
+]
+
+let nextId = 5 ;
+let employess =[
+    {id:1 , name :'Ahmed Ali1' , jobTitle : 'Developer', departmentId:1},
+    {id:2 , name :'Ahmed Ali2' , jobTitle : 'Developer', departmentId:2},
+    {id:3 , name :'Ahmed Ali3' , jobTitle : 'Developer', departmentId:3},
+
+] ;
+
+
+ let employeesWithDept = employess.map(emp => {
+        // البحث عن القسم المطابق لـ departmentId الخاص بالموظف
+        const dept = departments.find(d => d.id === emp.departmentId);
+        
+        return {
+            id: emp.id,
+            name: emp.name,
+            jobTitle: emp.jobTitle,
+            departmentId:emp.departmentId,
+            departmentName: dept ? dept.name : 'Unknown' // إرجاع اسم القسم أو Unknown إذا لم يتم العثور عليه
+        };
+});
+
+
+app.get('/',(req,res)=>{
+    res.send(`EmployeeHub is running ${port}`)
+})
+app.get('/hany',(req,res)=>{
+    res.send(`hany is running ${port}`)
+
+})
+
+app.get('/api/departments',(req,res)=>{
+    res.json(departments)
+    
+})
+
+app.get('/api/employees',(req,res)=>{
+    res.json(employess)
+    
+})
+
+app.post('/api/employees',(req,res)=>{
+   const body = req.body ??{};
+//    const errors =validateEmployee(body);
+   const{name,jobTitle,departmentId}=body;
+   const employee={id : nextId++,name :name , jobTitle :jobTitle ,departmentId :departmentId}
+   employess.push(employee);
+   res.status(201).json(employee);
+    
+})
+
+app.delete('/api/employees/:id',(req,res)=>{
+     let SearchEmplyeeID=Number (req.params.id)
+     const employee = employess.find(e => e.id === SearchEmplyeeID);
+//    const errors =validateEmployee(body);
+   
+   
+if (!employee) {
+        return res.status(404).json({ message: "الموظف غير موجود!" });
+    }
+
+    // 2. تحديث مصفوفة الموظفين بحذف الموظف المطلوب
+    employess = employess.filter(e => e.id !== SearchEmplyeeID);
+    
+    // 3. إرجاع الموظف المحذوف مع كود 200
+    res.status(200).json(employee);
+    
+}) ;
+
+app.get('/api/employeesDept', (req, res) => {
+    
+
+    res.json(employeesWithDept); 
+});
+
+
+
+
+app.get('/api/employeesDept2/:deptid', (req, res) => {
+    let SearchDepartmentId=Number (req.params.deptid)
+let NewList =employeesWithDept.filter(e=>e.departmentId===SearchDepartmentId)
+if (NewList.length===0  ) 
+    {
+        res.status(404).json({message : `Department with Id = ${SearchDepartmentId}`});
+    }   
+res.json(NewList);
+
+
+});
+app.listen(port,()=>{
+    console.log(`System is Running ${port}`);
+})
